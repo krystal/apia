@@ -1,16 +1,15 @@
 name: CI
-on: push
+on: [push, pull_request]
+
 jobs:
   release-please:
     name: Release Please
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.repository == 'krystal/apia'
     outputs:
       release_created: ${{ steps.release-please.outputs.release_created }}
-      tag_name: ${{ steps.release-please.outputs.tag_name }} # e.g. v1.0.0
-      version: ${{ steps.release-please.outputs.version }} # e.g. 1.0.0
     steps:
-      - uses: tibdex/github-app-token@v1
+      - uses: tibdex/github-app-token@v2
         id: generate-github-token
         with:
           app_id: ${{ vars.RELEASE_PLEASE_GITHUB_APP_ID }}
@@ -24,18 +23,14 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
+      - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.7
-
+          ruby-version: 3.3
       - name: Configure Bundler
         run: bundle config set rubygems.pkg.github.com "${{ secrets.KRYSTAL_GITHUB_PACKAGE_READ_KEY }}"
-
       - name: Install dependencies
         run: bundle install
-
       - name: Run linter
         run: bundle exec rake lint
 
@@ -45,42 +40,37 @@ jobs:
       fail-fast: false
       matrix:
         ruby_version:
-          - 2.5
           - 2.6
           - 2.7
           - "3.0"
           - 3.1
+          - 3.2
+          - 3.3
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: ruby/setup-ruby@v1
         with:
           ruby-version: ${{ matrix.ruby_version }}
           bundler-cache: true
-
       - name: Configure Bundler
         run: bundle config set rubygems.pkg.github.com "${{ secrets.KRYSTAL_GITHUB_PACKAGE_READ_KEY }}"
-
       - name: Install dependencies
         run: bundle install
-
       - name: Run tests
         run: bundle exec rake test
 
   release:
     runs-on: ubuntu-latest
     needs: [release-please, test]
-    if: ${{ needs.release-please.outputs.release_created }}
+    if: needs.release-please.outputs.release_created
     steps:
-      - uses: actions/checkout@master
-
+      - uses: actions/checkout@v4
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.1
-
+          ruby-version: 3.3
       - name: Build Gem
         run: gem build *.gemspec
-
       - name: Setup credentials
         run: |
           mkdir -p $HOME/.gem
@@ -89,7 +79,6 @@ jobs:
           printf -- "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}\n" > $HOME/.gem/credentials
         env:
           RUBYGEMS_API_KEY: ${{secrets.KRYSTAL_RUBYGEMS_API_KEY}}
-
       - name: Publish to RubyGems
         run: |
           gem push *.gem
