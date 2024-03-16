@@ -1,5 +1,19 @@
 # frozen_string_literal: true
 
+if %w[yes true 1 y t].include?(ENV['COVERAGE']&.downcase)
+  require 'simplecov'
+  require 'simplecov-console'
+
+  SimpleCov.formatter = SimpleCov::Formatter::MultiFormatter.new(
+    [
+      SimpleCov::Formatter::HTMLFormatter,
+      SimpleCov::Formatter::Console
+    ]
+  )
+
+  SimpleCov.start 'test_frameworks'
+end
+
 SPEC_ROOT = __dir__
 $LOAD_PATH.unshift(File.expand_path('../lib', __dir__))
 require 'apia'

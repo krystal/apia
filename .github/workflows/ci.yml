@@ -65,6 +65,15 @@ jobs:
 
       - name: Run tests
         run: bundle exec rake test
+        env:
+          COVERAGE: "1"
+
+      - name: Code Climate
+        # Don't run in forks, and only on one of the Ruby versions
+        if: github.repository == 'krystal/apia' && matrix.ruby_version == '3.1'
+        uses: paambaati/codeclimate-action@v5.0.0
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
 
   release:
     runs-on: ubuntu-latest
