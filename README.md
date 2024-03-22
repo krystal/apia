@@ -29,4 +29,4 @@ Apia is an opinionated framework for building HTTP APIs into a Ruby application.
 
 ## Getting started
 
-[Head over to the docs to see how to get started](https://apia.k.io)
+[Head over to the docs to see how to get started](https://apiaframework.com)
