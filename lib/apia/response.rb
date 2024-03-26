@@ -6,6 +6,11 @@ require 'apia/rack'
 module Apia
   class Response
 
+    TYPES = [
+      JSON = :json,
+      PLAIN = :plain
+    ].freeze
+
     attr_accessor :status
     attr_reader :fields
     attr_reader :headers
@@ -18,6 +23,11 @@ module Apia
       @status = @endpoint.definition.http_status_code
       @fields = {}
       @headers = {}
+    end
+
+    def plain!
+      @type = PLAIN
+      @body = ''
     end
 
     # Add a field value for this endpoint
@@ -53,11 +63,20 @@ module Apia
       @body || hash
     end
 
+    def type
+      @type || JSON
+    end
+
     # Return the rack triplet for this response
     #
     # @return [Array]
     def rack_triplet
-      Rack.json_triplet(body, headers: @headers, status: @status)
+      case type
+      when JSON
+        Rack.json_triplet(body, headers: headers, status: status)
+      when PLAIN
+        Rack.plain_triplet(body, headers: headers, status: status)
+      end
     end
 
   end

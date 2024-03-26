@@ -351,6 +351,49 @@ describe Apia::Rack do
     end
   end
 
+  context '.plain_triplet' do
+    it 'should return json encoded data' do
+      data = 'hello world'
+      triplet = Apia::Rack.plain_triplet(data)
+      expect(triplet).to be_a Array
+      expect(triplet[0]).to eq 200
+      expect(triplet[1]).to be_a Hash
+      expect(triplet[2]).to be_a Array
+      expect(triplet[2][0]).to eq 'hello world'
+    end
+
+    it 'should set the content type' do
+      data = 'hello world'
+      triplet = Apia::Rack.plain_triplet(data)
+      expect(triplet).to be_a Array
+      expect(triplet[1]['content-type']).to eq 'text/plain'
+    end
+
+    it 'should set the content length' do
+      data = 'hello world'
+      triplet = Apia::Rack.plain_triplet(data)
+      expect(triplet).to be_a Array
+      expect(triplet[1]['content-length']).to eq '11'
+    end
+
+    it 'should set the status' do
+      data = 'hello world'
+      triplet = Apia::Rack.plain_triplet(data, status: 400)
+      expect(triplet).to be_a Array
+      expect(triplet[0]).to eq 400
+    end
+
+    it 'should merge additional headers' do
+      data = 'hello world'
+      triplet = Apia::Rack.plain_triplet(data, headers: { 'x-something' => 'hello' })
+      expect(triplet).to be_a Array
+      expect(triplet[1]).to be_a Hash
+      expect(triplet[1]['x-something']).to eq 'hello'
+      expect(triplet[1]['content-length']).to eq '11'
+      expect(triplet[1]['content-type']).to eq 'text/plain'
+    end
+  end
+
   context '.error_triplet' do
     it 'should format the JSON appropriately' do
       triplet = Apia::Rack.error_triplet('example_error', description: 'Some example', detail: { hello: 'world' })

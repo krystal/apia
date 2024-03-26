@@ -152,6 +152,16 @@ module Apia
 
     class << self
 
+      # Return a plain text triplet for the given body.
+      #
+      # @param body [String]
+      # @param status [Integer]
+      # @param headers [Hash]
+      # @return [Array]
+      def plain_triplet(body, status: 200, headers: {})
+        response_triplet(body, content_type: 'text/plain', status: status, headers: headers)
+      end
+
       # Return a JSON-ready triplet for the given body.
       #
       # @param body [Hash, Array]
@@ -159,11 +169,21 @@ module Apia
       # @param headers [Hash]
       # @return [Array]
       def json_triplet(body, status: 200, headers: {})
-        body_as_json = body.to_json
+        response_triplet(body.to_json, content_type: 'application/json', status: status, headers: headers)
+      end
+
+      # Return a triplet for the given body.
+      #
+      # @param body [Hash, Array]
+      # @param content_type [String]
+      # @param status [Integer]
+      # @param headers [Hash]
+      # @return [Array]
+      def response_triplet(body, content_type:, status: 200, headers: {})
         [
           status,
-          headers.merge('content-type' => 'application/json', 'content-length' => body_as_json.bytesize.to_s),
-          [body_as_json]
+          headers.merge('content-type' => content_type, 'content-length' => body.bytesize.to_s),
+          [body]
         ]
       end
 
